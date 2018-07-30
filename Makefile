@@ -5,18 +5,18 @@
 #
 
 #
-## start by including any environment variables you need
-include .env
+## start by including any environment variables you may need
+# (but don't break if not present)
+-include .env
 
 # build-time:
 REPO = docker.io
 NS = jeffreybreen
 IMAGE = ubuntu18-blobfuse-scrapy
-
-VERSION ?= latest
-INSTANCE ?= default
+VERSION ?= $$(git rev-parse --short HEAD)
 
 # run-time:
+INSTANCE ?= default
 PORTS ?= 
 VOLUMES ?=
 
@@ -59,9 +59,10 @@ RUN_OPTS = \
 
 build:
 	docker build -t $(NS)/$(IMAGE):$(VERSION) .
+	docker tag $(NS)/$(IMAGE):$(VERSION) $(NS)/$(IMAGE):latest
 
 push:
-	docker push $(REPO)/$(NS)/$(IMAGE):$(VERSION)
+	docker push $(REPO)/$(NS)/$(IMAGE)
 
 run:
 	docker run --rm --name $(IMAGE)-$(INSTANCE) $(PORTS) $(VOLUMES) $(ENV) $(RUN_OPTS) $(NS)/$(IMAGE):$(VERSION)
@@ -82,6 +83,6 @@ rm:
 	docker rm $(IMAGE)-$(INSTANCE)
 
 release: build
-	make push -e VERSION=$(VERSION)
+	make push
 
 default: build
